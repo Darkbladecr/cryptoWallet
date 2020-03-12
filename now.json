@@ -1,0 +1,13 @@
+{
+  "env": {
+    "bitmex_scalp_api": "@bitmex_scalp_api",
+    "bitmex_scalp_secret": "@bitmex_scalp_secret",
+    "bitmex_hold_api": "@bitmex_hold_api",
+    "bitmex_hold_secret": "@bitmex_hold_secret",
+    "coinbase_api": "@coinbase_api",
+    "coinbase_secret": "@coinbase_secret",
+    "coinbase_password": "@coinbase_password",
+    "binance_api": "@binance_api",
+    "binance_secret": "@binance_secret"
+  }
+}
