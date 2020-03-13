@@ -81,8 +81,7 @@ const cryptoWallet = async () => {
     }
 
     await coinbase.loadMarkets();
-    const [btcUsd, btcGbp, btcEur] = await Promise.all([
-      coinbase.fetchTicker('BTC/USD'),
+    const [btcGbp, btcEur] = await Promise.all([
       coinbase.fetchTicker('BTC/GBP'),
       coinbase.fetchTicker('BTC/EUR'),
     ]);
