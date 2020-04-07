@@ -22,7 +22,7 @@ const bitmexHold = new ccxt.bitmex({
   enableRateLimit: true,
 });
 
-const fetchActiveBal = wallet => {
+const fetchActiveBal = (wallet) => {
   const output = {};
   for (const k in wallet.total) {
     const val = wallet.total[k];
@@ -40,11 +40,19 @@ const cryptoWallet = async () => {
       bitmexHoldWallet,
       coinbaseWallet,
       binanceWallet,
+      btcGbp,
+      btcEur,
+      binanceMarkets,
+      coinbaseMarkets,
     ] = await Promise.all([
       bitmexScalp.fetchBalance(),
       bitmexHold.fetchBalance(),
       coinbase.fetchBalance(),
       binance.fetchBalance(),
+      coinbase.fetchTicker('BTC/GBP'),
+      coinbase.fetchTicker('BTC/EUR'),
+      binance.loadMarkets(),
+      coinbase.loadMarkets(),
     ]);
 
     const wallet = {
@@ -73,20 +81,22 @@ const cryptoWallet = async () => {
     symbols.delete('EUR');
     symbols.delete('USD');
 
-    await binance.loadMarkets();
+    // await binance.loadMarkets();
     const latestBtcPrices = {};
     for (const k of symbols) {
       const symbol = k + '/BTC';
       latestBtcPrices[k] = (await binance.fetchTicker(symbol)).last;
     }
 
-    await coinbase.loadMarkets();
-    const [btcGbp, btcEur] = await Promise.all([
-      coinbase.fetchTicker('BTC/GBP'),
-      coinbase.fetchTicker('BTC/EUR'),
-    ]);
+    // console.time('loadCoinbaseMarkets');
+    // await coinbase.loadMarkets();
+    // const [btcGbp, btcEur] = await Promise.all([
+    //   coinbase.fetchTicker('BTC/GBP'),
+    //   coinbase.fetchTicker('BTC/EUR'),
+    // ]);
     latestBtcPrices['GBP'] = 1 / btcGbp.last;
     latestBtcPrices['EUR'] = 1 / btcEur.last;
+    // console.timeEnd('loadCoinbaseMarkets');
 
     const walletBtc = JSON.parse(JSON.stringify(wallet));
     for (const ex in walletBtc) {
@@ -109,8 +119,8 @@ const cryptoWallet = async () => {
 
 module.exports = (req, res) => {
   cryptoWallet()
-    .then(wallet => {
+    .then((wallet) => {
       return res.json(wallet);
     })
-    .catch(err => res.status(500).json(err));
+    .catch((err) => res.status(500).json(err));
 };
