@@ -42,8 +42,8 @@ const cryptoWallet = async () => {
       binanceWallet,
       btcGbp,
       btcEur,
-      binanceMarkets,
-      coinbaseMarkets,
+      // binanceMarkets,
+      // coinbaseMarkets,
     ] = await Promise.all([
       bitmexScalp.fetchBalance(),
       bitmexHold.fetchBalance(),
@@ -51,8 +51,8 @@ const cryptoWallet = async () => {
       binance.fetchBalance(),
       coinbase.fetchTicker('BTC/GBP'),
       coinbase.fetchTicker('BTC/EUR'),
-      binance.loadMarkets(),
-      coinbase.loadMarkets(),
+      // binance.loadMarkets(),
+      // coinbase.loadMarkets(),
     ]);
 
     const wallet = {
