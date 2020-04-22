@@ -1,0 +1,8 @@
+.env
+.git
+docker-compose.yml
+.dockerignore
+ssl
+html
+node_modules
+nginx-conf

@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  webserver:
+    image: nginx:1.17.9-alpine
+    container_name: cryptowallet-static
+    restart: unless-stopped
+    expose:
+      - 80
+    labels:
+      traefik.enable: true
+      traefik.http.routers.cryptowallet-static-http.rule: Host(`crypto.mitrasinovic.co.uk`)
+      traefik.http.routers.cryptowallet-static-http.entrypoints: web
+      traefik.http.routers.cryptowallet-static.rule: Host(`crypto.mitrasinovic.co.uk`)
+      traefik.http.routers.cryptowallet-static.entrypoints: websecure
+      traefik.http.routers.cryptowallet-static.tls.certresolver: letsencrypt
+      traefik.http.routers.cryptowallet-static-http.middlewares: https_redirect@file
+    volumes:
+      - ./build:/var/www/html
+      - ./nginx-conf:/etc/nginx/conf.d
+    networks:
+      - traefik-proxy
+  api:
+    build: .
+    container_name: cryptowallet-api
+    restart: unless-stopped
+    depends_on:
+      - webserver
+    expose:
+      - 3000
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+    labels:
+      traefik.enable: true
+      traefik.http.routers.cryptowallet-api-http.rule: Host(`crypto.mitrasinovic.co.uk`) && PathPrefix(`/api`)
+      traefik.http.routers.cryptowallet-api-http.entrypoints: web
+      traefik.http.routers.cryptowallet-api.rule: Host(`crypto.mitrasinovic.co.uk`) && PathPrefix(`/api`)
+      traefik.http.routers.cryptowallet-api.entrypoints: websecure
+      traefik.http.routers.cryptowallet-api.tls.certresolver: letsencrypt
+      traefik.http.routers.cryptowallet-api-http.middlewares: https_redirect@file
+    networks:
+      - traefik-proxy
+
+networks:
+  traefik-proxy:
+    external: true
