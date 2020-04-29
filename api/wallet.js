@@ -40,6 +40,7 @@ const cryptoWallet = async () => {
       bitmexHoldWallet,
       coinbaseWallet,
       binanceWallet,
+      btcUsd,
       btcGbp,
       btcEur,
       // binanceMarkets,
@@ -49,6 +50,7 @@ const cryptoWallet = async () => {
       bitmexHold.fetchBalance(),
       coinbase.fetchBalance(),
       binance.fetchBalance(),
+      coinbase.fetchTicker('BTC/USD'),
       coinbase.fetchTicker('BTC/GBP'),
       coinbase.fetchTicker('BTC/EUR'),
       // binance.loadMarkets(),
@@ -75,11 +77,8 @@ const cryptoWallet = async () => {
       ...Object.keys(wallet.coinbase),
       ...Object.keys(wallet.binance),
     ]);
-    symbols.delete('BTC');
-    symbols.delete('EON');
-    symbols.delete('GBP');
-    symbols.delete('EUR');
-    symbols.delete('USD');
+    const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD', 'USDT', 'USDC'];
+    removeSym.forEach((x) => symbols.delete(x));
 
     // await binance.loadMarkets();
     const latestBtcPrices = {};
@@ -96,6 +95,7 @@ const cryptoWallet = async () => {
     // ]);
     latestBtcPrices['GBP'] = 1 / btcGbp.last;
     latestBtcPrices['EUR'] = 1 / btcEur.last;
+    latestBtcPrices['USDC'] = 1 / btcUsd.last;
     // console.timeEnd('loadCoinbaseMarkets');
 
     const walletBtc = JSON.parse(JSON.stringify(wallet));
