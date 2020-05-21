@@ -1,5 +1,21 @@
 const ccxt = require('ccxt');
 
+const secrets = [
+  process.env.bitmex_scalp_api,
+  process.env.bitmex_scalp_secret,
+  process.env.coinbase_api,
+  process.env.coinbase_secret,
+  process.env.coinbase_password,
+  process.env.binance_api,
+  process.env.binance_secret,
+  process.env.bitmex_hold_api,
+  process.env.bitmex_hold_secret,
+];
+
+if (secrets.filter((s) => !!s).length > 0) {
+  throw new Error('Secrets not setup');
+}
+
 const bitmexScalp = new ccxt.bitmex({
   apiKey: process.env.bitmex_scalp_api,
   secret: process.env.bitmex_scalp_secret,
