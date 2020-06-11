@@ -146,7 +146,7 @@ function App() {
             <h1>
               {gbpFormatter.format(walletGbpTotal)}
               <span style={{ fontSize: 18, paddingLeft: 15 }}>
-                {percent > 0 ? '+' : '-'}
+                {percent > 0 ? '+' : ''}
                 {percent}%
               </span>
             </h1>
