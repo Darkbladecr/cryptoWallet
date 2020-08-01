@@ -12,11 +12,14 @@
     "axios": "^0.19.2",
     "ccxt": "^1.23.78",
     "dotenv": "^8.2.0",
+    "elliptic": "^6.5.3",
     "express": "^4.17.1",
+    "lodash": "^4.17.19",
     "minimist": "^1.2.3",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-scripts": "3.4.0",
+    "websocket-extensions": "^0.1.4",
     "ws": "^7.2.3"
   },
   "scripts": {
