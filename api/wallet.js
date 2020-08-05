@@ -77,7 +77,7 @@ const cryptoWallet = async () => {
       ...Object.keys(wallet.coinbase),
       ...Object.keys(wallet.binance),
     ]);
-    const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD', 'USDT', 'USDC'];
+    const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD'];
     removeSym.forEach((x) => symbols.delete(x));
 
     // await binance.loadMarkets();
@@ -96,6 +96,7 @@ const cryptoWallet = async () => {
     latestBtcPrices['GBP'] = 1 / btcGbp.last;
     latestBtcPrices['EUR'] = 1 / btcEur.last;
     latestBtcPrices['USDC'] = 1 / btcUsd.last;
+    latestBtcPrices['USDT'] = 1 / btcUsd.last;
     // console.timeEnd('loadCoinbaseMarkets');
 
     const walletBtc = JSON.parse(JSON.stringify(wallet));
