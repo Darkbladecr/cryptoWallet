@@ -1,4 +1,20 @@
 const ccxt = require('ccxt');
+const axios = require('axios');
+
+function getEthWalletBalance(address) {
+  if (address) {
+    return axios
+      .get(
+        `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${process.env.ethscan_api}`
+      )
+      .then(({ data }) => {
+        const balance = parseInt(data.result);
+        return balance / 10 ** 18;
+      })
+      .catch((err) => console.error(err));
+  }
+  throw new Error('No address given');
+}
 
 const bitmexScalp = new ccxt.bitmex({
   apiKey: process.env.bitmex_scalp_api,
@@ -45,6 +61,7 @@ const cryptoWallet = async () => {
       btcEur,
       // binanceMarkets,
       // coinbaseMarkets,
+      coldEthWalletBalance,
     ] = await Promise.all([
       bitmexScalp.fetchBalance(),
       bitmexHold.fetchBalance(),
@@ -55,6 +72,7 @@ const cryptoWallet = async () => {
       coinbase.fetchTicker('BTC/EUR'),
       // binance.loadMarkets(),
       // coinbase.loadMarkets(),
+      getEthWalletBalance('0xbc6d193e2829d7ae55fe81a1021ffedd38b42e70'),
     ]);
 
     const wallet = {
@@ -66,6 +84,9 @@ const cryptoWallet = async () => {
       },
       coinbase: fetchActiveBal(coinbaseWallet),
       binance: fetchActiveBal(binanceWallet),
+      coldStorage: {
+        ETH: coldEthWalletBalance,
+      },
     };
 
     // delete shitcoins
@@ -76,15 +97,25 @@ const cryptoWallet = async () => {
       ...Object.keys(wallet.bitmexHold),
       ...Object.keys(wallet.coinbase),
       ...Object.keys(wallet.binance),
+      ...Object.keys(wallet.coldStorage),
     ]);
     const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD'];
     removeSym.forEach((x) => symbols.delete(x));
 
     // await binance.loadMarkets();
     const latestBtcPrices = {};
-    for (const k of symbols) {
-      const symbol = k + '/BTC';
-      latestBtcPrices[k] = (await binance.fetchTicker(symbol)).last;
+    for (const symbol of symbols) {
+      try {
+        const ticker = await binance.fetchTicker(`${symbol}/BTC`);
+        latestBtcPrices[symbol] = ticker.last;
+      } catch (e) {
+        try {
+          const ticker = await binance.fetchTicker(`BTC/${symbol}`);
+          latestBtcPrices[symbol] = ticker.last;
+        } catch (e) {
+          console.log(e);
+        }
+      }
     }
 
     // console.time('loadCoinbaseMarkets');

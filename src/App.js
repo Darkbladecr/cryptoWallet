@@ -195,6 +195,7 @@ function App() {
                 <ExchangeRows name="Bitmex Hold" data={rowData.bitmexHold} />
                 <ExchangeRows name="Coinbase" data={rowData.coinbase} />
                 <ExchangeRows name="Binance" data={rowData.binance} />
+                <ExchangeRows name="Cold Storage" data={rowData.coldStorage} />
               </tbody>
             </table>
           </>
