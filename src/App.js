@@ -47,6 +47,14 @@ function App() {
       .get('/api/wallet')
       .then(({ data }) => {
         setWallet(data);
+        setInterval(() => {
+          axios
+            .get('/api/wallet')
+            .then(({ data }) => {
+              setWallet(data);
+            })
+            .catch(() => console.error('Unable to fetch wallet data.'));
+        }, 1000 * 10);
       })
       .catch(() => console.error('Unable to fetch wallet data.'));
   }, []);
@@ -150,7 +158,6 @@ function App() {
                 {percent}%
               </span>
             </h1>
-            <h4>Ali's squirrel nest</h4>
           </>
         )}
       </header>
