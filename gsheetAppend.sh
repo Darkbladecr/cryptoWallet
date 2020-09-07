@@ -1,3 +1,3 @@
 #!/bin/sh
 cd /home/darkbladecr/cryptoWallet/
-node gsheet.js
+/home/darkbladecr/.nvm/versions/node/v12.18.3/bin/node gsheet.js
