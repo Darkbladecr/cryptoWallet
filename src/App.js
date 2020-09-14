@@ -22,6 +22,11 @@ function App() {
   const [rowData, setRowData] = useState({});
 
   useEffect(() => {
+    axios
+      .get('https://api.pro.coinbase.com/products/BTC-GBP/ticker')
+      .then(({ data: { price: btcGbp } }) => {
+        setBtcGbp(btcGbp);
+      });
     const ws = new WebSocket('wss://ws-feed.pro.coinbase.com');
     ws.onopen = () => {
       ws.send(
@@ -43,8 +48,10 @@ function App() {
       console.error(data);
     };
     return () => {
-      ws.send(JSON.stringify({ type: 'unsubscribe' }));
-      ws.close();
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'unsubscribe' }));
+        ws.close();
+      }
     };
   }, []);
 
@@ -117,14 +124,16 @@ function App() {
         }
       };
       return () => {
-        ws.send(
-          JSON.stringify({
-            method: 'UNSUBSCRIBE',
-            params: binanceTickers,
-            id: 1,
-          })
-        );
-        ws.close();
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(
+            JSON.stringify({
+              method: 'UNSUBSCRIBE',
+              params: binanceTickers,
+              id: 1,
+            })
+          );
+          ws.close();
+        }
       };
     }
   }, [wallet]);
