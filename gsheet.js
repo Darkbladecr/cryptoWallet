@@ -81,9 +81,7 @@ function writeRow(auth) {
             const tableData = {};
             const exchanges = Object.keys(wallet.BTC);
             axios
-              .get(
-                'https://api-public.sandbox.pro.coinbase.com/products/BTC-GBP/ticker'
-              )
+              .get('https://api.pro.coinbase.com/products/BTC-GBP/ticker')
               .then(({ data: { price: btcGbp } }) => {
                 for (const ex of exchanges) {
                   tableData[ex] = [];
