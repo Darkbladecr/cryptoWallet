@@ -14,20 +14,26 @@ const investment = 1141;
 function App() {
   const [btcGbp, setBtcGbp] = useState(0);
   const [walletGbpTotal, setWalletGbpTotal] = useState(0);
-  const [wallet, setWallet] = useState({ base: {}, BTC: {} });
+  const [wallet, setWallet] = useState();
   const [latestBtcPrices, setLatestBtcPrices] = useState({});
   const [percent, setPercent] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const req = {
-      type: 'subscribe',
-      product_ids: ['BTC-GBP'],
-      channels: ['ticker'],
-    };
+    axios
+      .get('https://api.pro.coinbase.com/products/BTC-GBP/ticker')
+      .then(({ data: { price: btcGbp } }) => {
+        setBtcGbp(btcGbp);
+      });
     const ws = new WebSocket('wss://ws-feed.pro.coinbase.com');
     ws.onopen = () => {
-      ws.send(JSON.stringify(req));
+      ws.send(
+        JSON.stringify({
+          type: 'subscribe',
+          product_ids: ['BTC-GBP'],
+          channels: ['ticker'],
+        })
+      );
     };
     ws.onmessage = (ev) => {
       const data = JSON.parse(ev.data);
@@ -39,7 +45,12 @@ function App() {
       const data = JSON.parse(ev.data);
       console.error(data);
     };
-    return () => ws.close();
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'unsubscribe' }));
+        ws.close();
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -60,58 +71,73 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const symbols = new Set();
-    for (const k in wallet.base) {
-      const symbolKeys = Object.keys(wallet.base[k]);
-      symbolKeys.forEach((x) => symbols.add(x));
-    }
-    symbols.delete('BTC');
-    symbols.delete('EON');
-    symbols.delete('GBP');
-    symbols.delete('EUR');
-    symbols.delete('USD');
-
-    axios
-      .get('/api/binanceTickers', {
-        params: { symbols: [...symbols].map((x) => x + 'BTC').join(',') },
-      })
-      .then(({ data }) => {
-        if (Object.keys(data).length > 0) {
-          setLatestBtcPrices(data);
-          setLoading(false);
-        }
-      })
-      .catch((err) => console.error(err));
-
-    const binanceTickers = [...symbols].map(
-      (x) => x.toLowerCase() + 'btc@miniTicker'
-    );
-
-    const ws = new WebSocket('wss://stream.binance.com:9443/ws');
-
-    ws.onopen = () => {
-      const config = {
-        method: 'SUBSCRIBE',
-        params: binanceTickers,
-        id: 1,
-      };
-      ws.send(JSON.stringify(config));
-    };
-
-    ws.onmessage = ({ data }) => {
-      data = JSON.parse(data);
-      if (data.hasOwnProperty('c')) {
-        const symbol = data.s.substring(0, data.s.length - 3);
-        setLatestBtcPrices((prev) => ({
-          ...prev,
-          [symbol]: parseFloat(data.c),
-        }));
+    if (wallet) {
+      const symbols = new Set();
+      for (const k in wallet.base) {
+        const symbolKeys = Object.keys(wallet.base[k]);
+        symbolKeys.forEach((x) => symbols.add(x));
       }
-    };
+      symbols.delete('BTC');
+      symbols.delete('EON');
+      symbols.delete('GBP');
+      symbols.delete('EUR');
+      symbols.delete('USD');
+
+      axios
+        .get('/api/binanceTickers', {
+          params: { symbols: [...symbols].map((x) => x + 'BTC').join(',') },
+        })
+        .then(({ data }) => {
+          if (Object.keys(data).length > 0) {
+            setLatestBtcPrices(data);
+            setLoading(false);
+          }
+        })
+        .catch((err) => console.error(err));
+
+      const binanceTickers = [...symbols].map(
+        (x) => x.toLowerCase() + 'btc@miniTicker'
+      );
+
+      const ws = new WebSocket('wss://stream.binance.com:9443/ws');
+
+      ws.onopen = () => {
+        ws.send(
+          JSON.stringify({
+            method: 'SUBSCRIBE',
+            params: binanceTickers,
+            id: 1,
+          })
+        );
+      };
+
+      ws.onmessage = ({ data }) => {
+        data = JSON.parse(data);
+        if (data.hasOwnProperty('c')) {
+          const symbol = data.s.substring(0, data.s.length - 3);
+          setLatestBtcPrices((prev) => ({
+            ...prev,
+            [symbol]: parseFloat(data.c),
+          }));
+        }
+      };
+      return () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(
+            JSON.stringify({
+              method: 'UNSUBSCRIBE',
+              params: binanceTickers,
+              id: 1,
+            })
+          );
+          ws.close();
+        }
+      };
+    }
   }, [wallet]);
 
   useEffect(() => {
-    if (wallet && wallet.BTC) {
+    if (wallet) {
       const tableData = {};
       const exchanges = Object.keys(wallet.BTC);
       for (const ex of exchanges) {
