@@ -8,7 +8,7 @@ const gbpFormatter = new Intl.NumberFormat('en-UK', {
   currency: 'GBP',
 });
 
-const walletPcnt = 1141 / 26141;
+const walletPcnt = 1141 / 29141;
 const investment = 1141;
 
 function App() {
