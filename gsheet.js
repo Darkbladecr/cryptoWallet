@@ -54,7 +54,7 @@ function getNewToken(oAuth2Client, callback) {
   });
 }
 
-const investment = 46012 + 43731.57 * 0.9;
+const investment = 47022 + 43731.57 * 0.9;
 const spreadsheetId = '1FiQt9m_KDVN9_Ga2bEqSVBgezUv0QP1No-IRRZHlNbw';
 function writeRow(auth) {
   const sheets = google.sheets({ version: 'v4', auth });

@@ -37,6 +37,16 @@ const bitmexHold = new ccxt.bitmex({
   secret: process.env.bitmex_hold_secret,
   enableRateLimit: true,
 });
+const gemini = new ccxt.gemini({
+  apiKey: process.env.gemini_api,
+  secret: process.env.gemini_secret,
+  enableRateLimit: true,
+});
+const kraken = new ccxt.kraken({
+  apiKey: process.env.kraken_api,
+  secret: process.env.kraken_secret,
+  enableRateLimit: true,
+});
 
 const fetchActiveBal = (wallet) => {
   const output = {};
@@ -56,6 +66,8 @@ const cryptoWallet = async () => {
       bitmexHoldWallet,
       coinbaseWallet,
       binanceWallet,
+      geminiWallet,
+      krakenWallet,
       btcUsd,
       btcGbp,
       btcEur,
@@ -67,6 +79,8 @@ const cryptoWallet = async () => {
       bitmexHold.fetchBalance(),
       coinbase.fetchBalance(),
       binance.fetchBalance(),
+      gemini.fetchBalance(),
+      kraken.fetchBalance(),
       coinbase.fetchTicker('BTC/USD'),
       coinbase.fetchTicker('BTC/GBP'),
       coinbase.fetchTicker('BTC/EUR'),
@@ -84,6 +98,8 @@ const cryptoWallet = async () => {
       },
       coinbase: fetchActiveBal(coinbaseWallet),
       binance: fetchActiveBal(binanceWallet),
+      gemini: fetchActiveBal(geminiWallet),
+      kraken: fetchActiveBal(krakenWallet),
       coldStorage: {
         ETH: coldEthWalletBalance,
       },
@@ -97,6 +113,8 @@ const cryptoWallet = async () => {
       ...Object.keys(wallet.bitmexHold),
       ...Object.keys(wallet.coinbase),
       ...Object.keys(wallet.binance),
+      ...Object.keys(wallet.gemini),
+      ...Object.keys(wallet.kraken),
       ...Object.keys(wallet.coldStorage),
     ]);
     const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD'];

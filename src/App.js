@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Spinner } from '@blueprintjs/core';
 import './App.css';
+import useWindowDimensions from './windowDimensions';
 
 const gbpFormatter = new Intl.NumberFormat('en-UK', {
   style: 'currency',
@@ -10,7 +11,7 @@ const gbpFormatter = new Intl.NumberFormat('en-UK', {
 
 const walletPcnt = 1;
 // CB GBP + CB EUR (converted to GBP)
-const investment = 46012 + 43731.57 * 0.9;
+const investment = 47022 + 43731.57 * 0.9;
 
 function App() {
   const [btcGbp, setBtcGbp] = useState(0);
@@ -20,6 +21,7 @@ function App() {
   const [percent, setPercent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [rowData, setRowData] = useState({});
+  const { width } = useWindowDimensions();
 
   useEffect(() => {
     axios
@@ -145,7 +147,7 @@ function App() {
         return (
           <tr key={x.symbol}>
             <td>{x.symbol}</td>
-            <td>{x.holdings}</td>
+            {width > 900 && <td>{x.holdings}</td>}
             <td>{x.gbpQuote}</td>
             <td>{gbpFormatter.format(x.gbpTotal)}</td>
           </tr>
@@ -155,7 +157,7 @@ function App() {
     return (
       <React.Fragment>
         <tr>
-          <td colSpan="3">
+          <td colSpan={width > 900 ? '3' : '2'}>
             <b>{name}</b>
           </td>
           <td>
@@ -221,7 +223,7 @@ function App() {
                 <tr>
                   <th>Exchange</th>
                   <th>Holdings</th>
-                  <th>GBP Quote</th>
+                  {width > 900 && <th>GBP Quote</th>}
                   <th>GBP Total</th>
                 </tr>
               </thead>
@@ -230,6 +232,8 @@ function App() {
                 <ExchangeRows name="Bitmex Hold" data={rowData.bitmexHold} />
                 <ExchangeRows name="Coinbase" data={rowData.coinbase} />
                 <ExchangeRows name="Binance" data={rowData.binance} />
+                <ExchangeRows name="Kraken" data={rowData.kraken} />
+                <ExchangeRows name="Gemini" data={rowData.gemini} />
                 <ExchangeRows name="Cold Storage" data={rowData.coldStorage} />
               </tbody>
             </table>
