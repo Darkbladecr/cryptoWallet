@@ -147,8 +147,8 @@ function App() {
         return (
           <tr key={x.symbol}>
             <td>{x.symbol}</td>
-            {width > 900 && <td>{x.holdings}</td>}
-            <td>{x.gbpQuote}</td>
+            <td>{x.holdings}</td>
+            {width > 900 && <td>{x.gbpQuote}</td>}
             <td>{gbpFormatter.format(x.gbpTotal)}</td>
           </tr>
         );
