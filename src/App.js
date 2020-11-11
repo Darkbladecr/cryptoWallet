@@ -8,6 +8,7 @@ const gbpFormatter = new Intl.NumberFormat('en-UK', {
   currency: 'GBP',
 });
 
+// Ali's investment
 const walletPcnt = 1141 / 30151;
 const investment = 1141;
 
