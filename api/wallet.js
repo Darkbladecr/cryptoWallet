@@ -66,9 +66,6 @@ const cryptoWallet = async () => {
   let binanceWallet;
   let geminiWallet;
   let krakenWallet;
-  let btcUsd;
-  let btcGbp;
-  let btcEur;
   let coldEthWalletBalance;
 
   try {
@@ -84,16 +81,7 @@ const cryptoWallet = async () => {
   }
 
   try {
-    const result = await Promise.all([
-      coinbase.fetchBalance(),
-      coinbase.fetchTicker('BTC/USD'),
-      coinbase.fetchTicker('BTC/GBP'),
-      coinbase.fetchTicker('BTC/EUR'),
-    ]);
-    coinbaseWallet = result[0];
-    btcUsd = result[1];
-    btcGbp = result[2];
-    btcEur = result[3];
+    coinbaseWallet = await coinbase.fetchBalance();
   } catch (e) {
     console.error(e);
     throw new Error(`Coinbase init error: ${e.toString()}`);
@@ -148,61 +136,10 @@ const cryptoWallet = async () => {
   // delete shitcoins
   delete wallet.binance.EON;
 
-  const symbols = new Set([
-    ...Object.keys(wallet.bitmexScalp),
-    ...Object.keys(wallet.bitmexHold),
-    ...Object.keys(wallet.coinbase),
-    ...Object.keys(wallet.binance),
-    ...Object.keys(wallet.gemini),
-    ...Object.keys(wallet.kraken),
-    ...Object.keys(wallet.coldStorage),
-  ]);
-  const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD'];
-  removeSym.forEach((x) => symbols.delete(x));
-
-  // await binance.loadMarkets();
-  const latestBtcPrices = {};
-  try {
-    for (const symbol of symbols) {
-      try {
-        const ticker = await binance.fetchTicker(`${symbol}/BTC`);
-        latestBtcPrices[symbol] = ticker.last;
-      } catch (e) {
-        try {
-          const ticker = await binance.fetchTicker(`BTC/${symbol}`);
-          latestBtcPrices[symbol] = ticker.last;
-        } catch (e) {
-          throw new Error(symbol);
-        }
-      }
-    }
-  } catch (e) {
-    console.error(e);
-    throw new Error(`Error fetching Binance tickers: ${e.toString()}`);
-  }
-
-  latestBtcPrices['GBP'] = 1 / btcGbp.last;
-  latestBtcPrices['EUR'] = 1 / btcEur.last;
-  latestBtcPrices['USDC'] = 1 / btcUsd.last;
-  latestBtcPrices['USDT'] = 1 / btcUsd.last;
-
-  const walletBtc = JSON.parse(JSON.stringify(wallet));
-  for (const ex in walletBtc) {
-    for (const k in walletBtc[ex]) {
-      if (k !== 'BTC') {
-        walletBtc[ex][k] = latestBtcPrices[k] * walletBtc[ex][k];
-      }
-    }
-  }
-
-  const output = {
-    base: wallet,
-    BTC: walletBtc,
-  };
-  return output;
+  return wallet;
 };
 
-module.exports = (req, res) => {
+module.exports = (_, res) => {
   cryptoWallet()
     .then((wallet) => {
       return res.json(wallet);
