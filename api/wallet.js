@@ -60,68 +60,109 @@ const fetchActiveBal = (wallet) => {
 };
 
 const cryptoWallet = async () => {
+  let bitmexScalpWallet;
+  let bitmexHoldWallet;
+  let coinbaseWallet;
+  let binanceWallet;
+  let geminiWallet;
+  let krakenWallet;
+  let btcUsd;
+  let btcGbp;
+  let btcEur;
+  let coldEthWalletBalance;
+
   try {
-    const [
-      bitmexScalpWallet,
-      bitmexHoldWallet,
-      coinbaseWallet,
-      binanceWallet,
-      geminiWallet,
-      krakenWallet,
-      btcUsd,
-      btcGbp,
-      btcEur,
-      // binanceMarkets,
-      // coinbaseMarkets,
-      coldEthWalletBalance,
-    ] = await Promise.all([
+    const result = await Promise.all([
       bitmexScalp.fetchBalance(),
       bitmexHold.fetchBalance(),
+    ]);
+    bitmexScalpWallet = result[0];
+    bitmexHoldWallet = result[1];
+  } catch (e) {
+    console.error(e);
+    throw new Error(`Bitmex init error: ${e.toString()}`);
+  }
+
+  try {
+    const result = await Promise.all([
       coinbase.fetchBalance(),
-      binance.fetchBalance(),
-      gemini.fetchBalance(),
-      kraken.fetchBalance(),
       coinbase.fetchTicker('BTC/USD'),
       coinbase.fetchTicker('BTC/GBP'),
       coinbase.fetchTicker('BTC/EUR'),
-      // binance.loadMarkets(),
-      // coinbase.loadMarkets(),
-      getEthWalletBalance('0xbc6d193e2829d7ae55fe81a1021ffedd38b42e70'),
     ]);
+    coinbaseWallet = result[0];
+    btcUsd = result[1];
+    btcGbp = result[2];
+    btcEur = result[3];
+  } catch (e) {
+    console.error(e);
+    throw new Error(`Coinbase init error: ${e.toString()}`);
+  }
 
-    const wallet = {
-      bitmexScalp: {
-        BTC: bitmexScalpWallet.info[0].marginBalance / 10 ** 8,
-      },
-      bitmexHold: {
-        BTC: bitmexHoldWallet.info[0].marginBalance / 10 ** 8,
-      },
-      coinbase: fetchActiveBal(coinbaseWallet),
-      binance: fetchActiveBal(binanceWallet),
-      gemini: fetchActiveBal(geminiWallet),
-      kraken: fetchActiveBal(krakenWallet),
-      coldStorage: {
-        ETH: coldEthWalletBalance,
-      },
-    };
+  try {
+    binanceWallet = await binance.fetchBalance();
+  } catch (e) {
+    console.error(e);
+    throw new Error(`Binance init error: ${e.toString()}`);
+  }
 
-    // delete shitcoins
-    delete wallet.binance.EON;
+  try {
+    geminiWallet = await gemini.fetchBalance();
+  } catch (e) {
+    console.error(e);
+    throw new Error(`Gemini init error: ${e.toString()}`);
+  }
 
-    const symbols = new Set([
-      ...Object.keys(wallet.bitmexScalp),
-      ...Object.keys(wallet.bitmexHold),
-      ...Object.keys(wallet.coinbase),
-      ...Object.keys(wallet.binance),
-      ...Object.keys(wallet.gemini),
-      ...Object.keys(wallet.kraken),
-      ...Object.keys(wallet.coldStorage),
-    ]);
-    const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD'];
-    removeSym.forEach((x) => symbols.delete(x));
+  try {
+    krakenWallet = await kraken.fetchBalance();
+  } catch (e) {
+    console.error(e);
+    throw new Error(`Kraken init error: ${e.toString()}`);
+  }
 
-    // await binance.loadMarkets();
-    const latestBtcPrices = {};
+  try {
+    coldEthWalletBalance = await getEthWalletBalance(
+      '0xbc6d193e2829d7ae55fe81a1021ffedd38b42e70'
+    );
+  } catch (e) {
+    console.error(e);
+    throw new Error(`EthScan init error: ${e.toString()}`);
+  }
+
+  const wallet = {
+    bitmexScalp: {
+      BTC: bitmexScalpWallet.info[0].marginBalance / 10 ** 8,
+    },
+    bitmexHold: {
+      BTC: bitmexHoldWallet.info[0].marginBalance / 10 ** 8,
+    },
+    coinbase: fetchActiveBal(coinbaseWallet),
+    binance: fetchActiveBal(binanceWallet),
+    gemini: fetchActiveBal(geminiWallet),
+    kraken: fetchActiveBal(krakenWallet),
+    coldStorage: {
+      ETH: coldEthWalletBalance,
+    },
+  };
+
+  // delete shitcoins
+  delete wallet.binance.EON;
+
+  const symbols = new Set([
+    ...Object.keys(wallet.bitmexScalp),
+    ...Object.keys(wallet.bitmexHold),
+    ...Object.keys(wallet.coinbase),
+    ...Object.keys(wallet.binance),
+    ...Object.keys(wallet.gemini),
+    ...Object.keys(wallet.kraken),
+    ...Object.keys(wallet.coldStorage),
+  ]);
+  const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD'];
+  removeSym.forEach((x) => symbols.delete(x));
+
+  // await binance.loadMarkets();
+  const latestBtcPrices = {};
+  try {
     for (const symbol of symbols) {
       try {
         const ticker = await binance.fetchTicker(`${symbol}/BTC`);
@@ -135,36 +176,30 @@ const cryptoWallet = async () => {
         }
       }
     }
+  } catch (e) {
+    console.error(e);
+    throw new Error(`Error fetching Binance tickers ${e.toString()}`);
+  }
 
-    // console.time('loadCoinbaseMarkets');
-    // await coinbase.loadMarkets();
-    // const [btcGbp, btcEur] = await Promise.all([
-    //   coinbase.fetchTicker('BTC/GBP'),
-    //   coinbase.fetchTicker('BTC/EUR'),
-    // ]);
-    latestBtcPrices['GBP'] = 1 / btcGbp.last;
-    latestBtcPrices['EUR'] = 1 / btcEur.last;
-    latestBtcPrices['USDC'] = 1 / btcUsd.last;
-    latestBtcPrices['USDT'] = 1 / btcUsd.last;
-    // console.timeEnd('loadCoinbaseMarkets');
+  latestBtcPrices['GBP'] = 1 / btcGbp.last;
+  latestBtcPrices['EUR'] = 1 / btcEur.last;
+  latestBtcPrices['USDC'] = 1 / btcUsd.last;
+  latestBtcPrices['USDT'] = 1 / btcUsd.last;
 
-    const walletBtc = JSON.parse(JSON.stringify(wallet));
-    for (const ex in walletBtc) {
-      for (const k in walletBtc[ex]) {
-        if (k !== 'BTC') {
-          walletBtc[ex][k] = latestBtcPrices[k] * walletBtc[ex][k];
-        }
+  const walletBtc = JSON.parse(JSON.stringify(wallet));
+  for (const ex in walletBtc) {
+    for (const k in walletBtc[ex]) {
+      if (k !== 'BTC') {
+        walletBtc[ex][k] = latestBtcPrices[k] * walletBtc[ex][k];
       }
     }
-
-    const output = {
-      base: wallet,
-      BTC: walletBtc,
-    };
-    return output;
-  } catch (err) {
-    throw err;
   }
+
+  const output = {
+    base: wallet,
+    BTC: walletBtc,
+  };
+  return output;
 };
 
 module.exports = (req, res) => {
