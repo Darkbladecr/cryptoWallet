@@ -17,7 +17,6 @@ const cryptoWallet = async (wallet) => {
   let btcGbp;
   let btcEur;
 
-  console.time('coinbase');
   try {
     const result = await Promise.all([
       coinbase.fetchTicker('BTC/USD'),
@@ -31,7 +30,6 @@ const cryptoWallet = async (wallet) => {
     console.error(e);
     throw new Error(`Coinbase init error: ${e.toString()}`);
   }
-  console.timeEnd('coinbase');
 
   const symbols = new Set([
     ...Object.keys(wallet.bitmexScalp),
@@ -45,8 +43,6 @@ const cryptoWallet = async (wallet) => {
   const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD'];
   removeSym.forEach((x) => symbols.delete(x));
 
-  // await binance.loadMarkets();
-  console.time('binanceTickers');
   const latestBtcPrices = {};
   try {
     for (const symbol of symbols) {
@@ -66,7 +62,6 @@ const cryptoWallet = async (wallet) => {
     console.error(e);
     throw new Error(`Error fetching Binance tickers: ${e.toString()}`);
   }
-  console.timeEnd('binanceTickers');
 
   latestBtcPrices['GBP'] = 1 / btcGbp.last;
   latestBtcPrices['EUR'] = 1 / btcEur.last;
