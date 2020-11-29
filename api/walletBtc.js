@@ -36,9 +36,9 @@ const cryptoWallet = async (wallet) => {
     ...Object.keys(wallet.bitmexHold),
     ...Object.keys(wallet.coinbase),
     ...Object.keys(wallet.binance),
-    ...Object.keys(wallet.gemini),
-    ...Object.keys(wallet.kraken),
-    ...Object.keys(wallet.coldStorage),
+    // ...Object.keys(wallet.gemini),
+    // ...Object.keys(wallet.kraken),
+    // ...Object.keys(wallet.coldStorage),
   ]);
   const removeSym = ['BTC', 'EON', 'GBP', 'EUR', 'USD'];
   removeSym.forEach((x) => symbols.delete(x));
