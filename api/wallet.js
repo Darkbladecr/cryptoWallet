@@ -172,13 +172,13 @@ const cryptoWallet = async () => {
           const ticker = await binance.fetchTicker(`BTC/${symbol}`);
           latestBtcPrices[symbol] = ticker.last;
         } catch (e) {
-          console.log(e);
+          throw new Error(symbol);
         }
       }
     }
   } catch (e) {
     console.error(e);
-    throw new Error(`Error fetching Binance tickers ${e.toString()}`);
+    throw new Error(`Error fetching Binance tickers: ${e.toString()}`);
   }
 
   latestBtcPrices['GBP'] = 1 / btcGbp.last;
