@@ -54,18 +54,27 @@ function App() {
     };
   }, []);
 
+  const getWallet = async () => {
+    try {
+      const { data: wallet } = await axios.get('/api/wallet');
+      // setWallet((prev) => ({ ...prev, base: wallet }));
+      const { data: walletBtc } = await axios.post('/api/walletBtc', {
+        base: wallet,
+      });
+      // setWallet((prev) => ({ ...prev, BTC: walletBtc }));
+      setWallet({ base: wallet, BTC: walletBtc });
+    } catch (e) {
+      throw e;
+    }
+  };
+
   useEffect(() => {
-    axios
-      .get('/api/wallet')
-      .then(({ data }) => {
-        setWallet(data);
+    getWallet()
+      .then(() => {
         setInterval(() => {
-          axios
-            .get('/api/wallet')
-            .then(({ data }) => {
-              setWallet(data);
-            })
-            .catch(() => console.error('Unable to fetch wallet data.'));
+          getWallet().catch(() =>
+            console.error('Unable to fetch wallet data.')
+          );
         }, 1000 * 10);
       })
       .catch(() => console.error('Unable to fetch wallet data.'));
@@ -140,7 +149,7 @@ function App() {
   useEffect(() => {
     if (wallet) {
       const tableData = {};
-      const exchanges = Object.keys(wallet.BTC);
+      const exchanges = Object.keys(wallet.base);
       for (const ex of exchanges) {
         tableData[ex] = [];
         for (const k in wallet.base[ex]) {
