@@ -86,10 +86,12 @@ const cryptoWallet = async (wallet) => {
 };
 
 module.exports = (req, res) => {
-  const { body } = req;
-  cryptoWallet(body.base)
-    .then((wallet) => {
-      return res.json(wallet);
-    })
-    .catch((err) => res.status(500).json(err));
+  if (req?.body?.base) {
+    cryptoWallet(req.body.base)
+      .then((wallet) => {
+        return res.json(wallet);
+      })
+      .catch((err) => res.status(500).json(err));
+  }
+  return res.status(500).json({ message: 'body missing' });
 };

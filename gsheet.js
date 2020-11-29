@@ -60,82 +60,92 @@ function writeRow(auth) {
   const sheets = google.sheets({ version: 'v4', auth });
   axios
     .get('https://cryptowallet.now.sh/api/wallet')
-    .then(({ data: wallet }) => {
-      const symbols = new Set();
-      for (const k in wallet.base) {
-        const symbolKeys = Object.keys(wallet.base[k]);
-        symbolKeys.forEach((x) => symbols.add(x));
-      }
-      symbols.delete('BTC');
-      symbols.delete('EON');
-      symbols.delete('GBP');
-      symbols.delete('EUR');
-      symbols.delete('USD');
+    .then(({ data: base }) => {
       axios
-        .get('https://cryptowallet.now.sh/api/binanceTickers', {
-          params: { symbols: [...symbols].map((x) => x + 'BTC').join(',') },
-        })
-        .then(({ data }) => {
-          if (Object.keys(data).length > 0) {
-            const latestBtcPrices = data;
-            const tableData = {};
-            const exchanges = Object.keys(wallet.BTC);
-            axios
-              .get('https://api.pro.coinbase.com/products/BTC-GBP/ticker')
-              .then(({ data: { price: btcGbp } }) => {
-                for (const ex of exchanges) {
-                  tableData[ex] = [];
-                  for (const k in wallet.base[ex]) {
-                    let quote = btcGbp;
-                    if (Object.keys(latestBtcPrices).includes(k)) {
-                      quote = latestBtcPrices[k];
-                    }
-                    const tmp = {
-                      symbol: k,
-                      holdings: wallet.base[ex][k],
-                      gbpQuote: quote,
-                      gbpTotal: wallet.BTC[ex][k] * btcGbp,
-                    };
-                    tableData[ex].push(tmp);
-                  }
-                }
-                let totalValue = 0;
-                for (const ex in tableData) {
-                  for (const x of tableData[ex]) {
-                    totalValue += x.gbpTotal;
-                  }
-                }
-                const date = moment().format('MM/DD/YYYY');
-                sheets.spreadsheets.values.append(
-                  {
-                    spreadsheetId,
-                    range: 'Sheet1!A1:C1',
-                    valueInputOption: 'USER_ENTERED',
-                    insertDataOption: 'INSERT_ROWS',
-                    //   [date, total value, initial investment, ROI]
-                    resource: {
-                      values: [
-                        [
-                          date,
-                          Math.round(totalValue * 100) / 100,
-                          Math.round(investment * 100) / 100,
-                          `${
-                            Math.round((totalValue / investment - 1) * 10000) /
-                            100
-                          }%`,
-                        ],
-                      ],
-                    },
-                  },
-                  (err) => {
-                    if (err)
-                      return console.log('The API returned an error: ' + err);
-                    console.log(`${moment().format()}: Appended row`);
-                  }
-                );
-              })
-              .catch((err) => console.log(`Coinbase Error: ${err}`));
+        .post('https://cryptowallet.now.sh/api/walletBtc', { base })
+        .then(({ data: BTC }) => {
+          const wallet = { base, BTC };
+
+          const symbols = new Set();
+          for (const k in wallet.base) {
+            const symbolKeys = Object.keys(wallet.base[k]);
+            symbolKeys.forEach((x) => symbols.add(x));
           }
+          symbols.delete('BTC');
+          symbols.delete('EON');
+          symbols.delete('GBP');
+          symbols.delete('EUR');
+          symbols.delete('USD');
+          axios
+            .get('https://cryptowallet.now.sh/api/binanceTickers', {
+              params: { symbols: [...symbols].map((x) => x + 'BTC').join(',') },
+            })
+            .then(({ data }) => {
+              if (Object.keys(data).length > 0) {
+                const latestBtcPrices = data;
+                const tableData = {};
+                const exchanges = Object.keys(wallet.BTC);
+                axios
+                  .get('https://api.pro.coinbase.com/products/BTC-GBP/ticker')
+                  .then(({ data: { price: btcGbp } }) => {
+                    for (const ex of exchanges) {
+                      tableData[ex] = [];
+                      for (const k in wallet.base[ex]) {
+                        let quote = btcGbp;
+                        if (Object.keys(latestBtcPrices).includes(k)) {
+                          quote = latestBtcPrices[k];
+                        }
+                        const tmp = {
+                          symbol: k,
+                          holdings: wallet.base[ex][k],
+                          gbpQuote: quote,
+                          gbpTotal: wallet.BTC[ex][k] * btcGbp,
+                        };
+                        tableData[ex].push(tmp);
+                      }
+                    }
+                    let totalValue = 0;
+                    for (const ex in tableData) {
+                      for (const x of tableData[ex]) {
+                        totalValue += x.gbpTotal;
+                      }
+                    }
+                    const date = moment().format('MM/DD/YYYY');
+                    sheets.spreadsheets.values.append(
+                      {
+                        spreadsheetId,
+                        range: 'Sheet1!A1:C1',
+                        valueInputOption: 'USER_ENTERED',
+                        insertDataOption: 'INSERT_ROWS',
+                        //   [date, total value, initial investment, ROI]
+                        resource: {
+                          values: [
+                            [
+                              date,
+                              Math.round(totalValue * 100) / 100,
+                              Math.round(investment * 100) / 100,
+                              `${
+                                Math.round(
+                                  (totalValue / investment - 1) * 10000
+                                ) / 100
+                              }%`,
+                            ],
+                          ],
+                        },
+                      },
+                      (err) => {
+                        if (err)
+                          return console.log(
+                            'The API returned an error: ' + err
+                          );
+                        console.log(`${moment().format()}: Appended row`);
+                      }
+                    );
+                  })
+                  .catch((err) => console.log(`Coinbase Error: ${err}`));
+              }
+            })
+            .catch(() => console.log('Unable to fetch wallet data.'));
         })
         .catch(() => console.log('Unable to fetch wallet data.'));
     })
