@@ -1,20 +1,20 @@
 const ccxt = require('ccxt');
-const axios = require('axios');
+// const axios = require('axios');
 
-function getEthWalletBalance(address) {
-  if (address) {
-    return axios
-      .get(
-        `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${process.env.ethscan_api}`
-      )
-      .then(({ data }) => {
-        const balance = parseInt(data.result);
-        return balance / 10 ** 18;
-      })
-      .catch((err) => console.error(err));
-  }
-  throw new Error('No address given');
-}
+// function getEthWalletBalance(address) {
+//   if (address) {
+//     return axios
+//       .get(
+//         `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${process.env.ethscan_api}`
+//       )
+//       .then(({ data }) => {
+//         const balance = parseInt(data.result);
+//         return balance / 10 ** 18;
+//       })
+//       .catch((err) => console.error(err));
+//   }
+//   throw new Error('No address given');
+// }
 
 const bitmexScalp = new ccxt.bitmex({
   apiKey: process.env.bitmex_scalp_api,
@@ -37,16 +37,16 @@ const bitmexHold = new ccxt.bitmex({
   secret: process.env.bitmex_hold_secret,
   enableRateLimit: true,
 });
-const gemini = new ccxt.gemini({
-  apiKey: process.env.gemini_api,
-  secret: process.env.gemini_secret,
-  enableRateLimit: true,
-});
-const kraken = new ccxt.kraken({
-  apiKey: process.env.kraken_api,
-  secret: process.env.kraken_secret,
-  enableRateLimit: true,
-});
+// const gemini = new ccxt.gemini({
+//   apiKey: process.env.gemini_api,
+//   secret: process.env.gemini_secret,
+//   enableRateLimit: true,
+// });
+// const kraken = new ccxt.kraken({
+//   apiKey: process.env.kraken_api,
+//   secret: process.env.kraken_secret,
+//   enableRateLimit: true,
+// });
 
 const fetchActiveBal = (wallet) => {
   const output = {};
@@ -64,9 +64,9 @@ const cryptoWallet = async () => {
   let bitmexHoldWallet;
   let coinbaseWallet;
   let binanceWallet;
-  let geminiWallet;
-  let krakenWallet;
-  let coldEthWalletBalance;
+  // let geminiWallet;
+  // let krakenWallet;
+  // let coldEthWalletBalance;
 
   try {
     const result = await Promise.all([
@@ -94,28 +94,28 @@ const cryptoWallet = async () => {
     throw new Error(`Binance init error: ${e.toString()}`);
   }
 
-  try {
-    geminiWallet = await gemini.fetchBalance();
-  } catch (e) {
-    console.error(e);
-    throw new Error(`Gemini init error: ${e.toString()}`);
-  }
+  // try {
+  //   geminiWallet = await gemini.fetchBalance();
+  // } catch (e) {
+  //   console.error(e);
+  //   throw new Error(`Gemini init error: ${e.toString()}`);
+  // }
 
-  try {
-    krakenWallet = await kraken.fetchBalance();
-  } catch (e) {
-    console.error(e);
-    throw new Error(`Kraken init error: ${e.toString()}`);
-  }
+  // try {
+  //   krakenWallet = await kraken.fetchBalance();
+  // } catch (e) {
+  //   console.error(e);
+  //   throw new Error(`Kraken init error: ${e.toString()}`);
+  // }
 
-  try {
-    coldEthWalletBalance = await getEthWalletBalance(
-      '0xbc6d193e2829d7ae55fe81a1021ffedd38b42e70'
-    );
-  } catch (e) {
-    console.error(e);
-    throw new Error(`EthScan init error: ${e.toString()}`);
-  }
+  // try {
+  //   coldEthWalletBalance = await getEthWalletBalance(
+  //     '0xbc6d193e2829d7ae55fe81a1021ffedd38b42e70'
+  //   );
+  // } catch (e) {
+  //   console.error(e);
+  //   throw new Error(`EthScan init error: ${e.toString()}`);
+  // }
 
   const wallet = {
     bitmexScalp: {
@@ -126,11 +126,11 @@ const cryptoWallet = async () => {
     },
     coinbase: fetchActiveBal(coinbaseWallet),
     binance: fetchActiveBal(binanceWallet),
-    gemini: fetchActiveBal(geminiWallet),
-    kraken: fetchActiveBal(krakenWallet),
-    coldStorage: {
-      ETH: coldEthWalletBalance,
-    },
+    // gemini: fetchActiveBal(geminiWallet),
+    // kraken: fetchActiveBal(krakenWallet),
+    // coldStorage: {
+    //   ETH: coldEthWalletBalance,
+    // },
   };
 
   // delete shitcoins

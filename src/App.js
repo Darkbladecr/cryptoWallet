@@ -57,11 +57,9 @@ function App() {
   const getWallet = async () => {
     try {
       const { data: wallet } = await axios.get('/api/wallet');
-      // setWallet((prev) => ({ ...prev, base: wallet }));
       const { data: walletBtc } = await axios.post('/api/walletBtc', {
         base: wallet,
       });
-      // setWallet((prev) => ({ ...prev, BTC: walletBtc }));
       setWallet({ base: wallet, BTC: walletBtc });
     } catch (e) {
       throw e;
