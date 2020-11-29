@@ -86,12 +86,9 @@ const cryptoWallet = async (wallet) => {
 };
 
 module.exports = (req, res) => {
-  if (req.hasOwnProperty('body') && req.body.hasOwnProperty('base')) {
-    cryptoWallet(req.body.base)
-      .then((wallet) => {
-        return res.json(wallet);
-      })
-      .catch((err) => res.status(500).json(err));
-  }
-  return res.status(500).json({ message: 'body missing' });
+  cryptoWallet(req.body.base)
+    .then((wallet) => {
+      return res.json(wallet);
+    })
+    .catch((err) => res.status(500).json(err));
 };
