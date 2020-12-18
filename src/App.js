@@ -9,7 +9,7 @@ const gbpFormatter = new Intl.NumberFormat('en-UK', {
 });
 
 // Ali's investment
-const walletPcnt = 1141 / 30151;
+const walletPcnt = 1141 / (30151 - 2484.06);
 const investment = 1141;
 
 function App() {
