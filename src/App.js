@@ -11,7 +11,7 @@ const gbpFormatter = new Intl.NumberFormat('en-UK', {
 
 const walletPcnt = 1;
 // GBP + EUR (converted to GBP)
-const investment = 41922 - 2484.06 + 43731.57 * 0.9;
+const investment = 41922 - 2484.06 + (43731.57 - 12000) * 0.9;
 
 function App() {
   const [btcGbp, setBtcGbp] = useState(0);
