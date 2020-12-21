@@ -54,7 +54,7 @@ const cryptoWallet = async (wallet) => {
           const ticker = await binance.fetchTicker(`BTC/${symbol}`);
           latestBtcPrices[symbol] = ticker.last;
         } catch (e) {
-          throw new Error(symbol);
+          latestBtcPrices[symbol] = 0;
         }
       }
     }
